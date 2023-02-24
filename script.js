@@ -31,6 +31,7 @@ main.style.backgroundSize="cover";
 main.style.backgroundRepeat="no-repeat";
 
 
+
 const getData= async(event)=>{
     event.preventDefault();
     if(!search.value){
