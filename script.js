@@ -1,170 +1,128 @@
 
-const search =document.getElementById("search-bar");
-const reload =document.getElementById("reload");
-const cityName =document.getElementById("cityName");
-const stateName =document.getElementById("stateName");
-const countryName =document.getElementById("countryName");
-const tempInC=document.getElementById("cels");
-const tempInF=document.getElementById("fehr");
-const logoImage=document.getElementById("logoImage");
-const weatherStatus=document.getElementById("weatherStatus");
-const main=document.getElementById("bg-img");
+const search = document.getElementById("search-bar");
+const reload = document.getElementById("reload");
+const cityName = document.getElementById("cityName");
+const stateName = document.getElementById("stateName");
+const countryName = document.getElementById("countryName");
+const tempInC = document.getElementById("cels");
+const tempInF = document.getElementById("fehr");
+const weatherStatus = document.getElementById("weatherStatus");
+const main = document.getElementById("bg-img");
 const humidity = document.getElementById("humidity");
-const windSpeed= document.getElementById("wind");
-const lastUpdate=document.getElementById("lastUpdate");
-const feelsinC =document.getElementById("inCel");
-const feelsinF =document.getElementById("infehr");
-const visibility=document.getElementById("visibility");
-const airIndex=document.getElementById("airIndex");
-const currDate=document.getElementById("currDate");
-const currTime=document.getElementById("currTime");
-const forecastDay=document.querySelectorAll(".forecast-day")
-const forecastImage=document.querySelectorAll(".forecast-image");
-const forecastStatus=document.querySelectorAll(".forecast-status");
-const foreinC=document.querySelectorAll(".foreinC");
-const foreinF=document.querySelectorAll(".foreinF");
+const windSpeed = document.getElementById("wind");
+const lastUpdate = document.getElementById("lastUpdate");
+const feelsinC = document.getElementById("inCel");
+const feelsinF = document.getElementById("infehr");
+const visibility = document.getElementById("visibility");
+const airIndex = document.getElementById("airIndex");
+const currDate = document.getElementById("currDate");
+const currTime = document.getElementById("currTime");
+const forecastHour = document.querySelectorAll(".forecast-day");
+const forecastStatus = document.querySelectorAll(".forecast-status");
+const foreinC = document.querySelectorAll(".foreinC");
+const foreinF = document.querySelectorAll(".foreinF");
+
 let data;
 
-main.style.backgroundImage="url(./assets/img/main-img.jpg)";
-main.style.backgroundRepeat="no-repeat";
-main.style.backgroundSize="cover";
-main.style.backgroundRepeat="no-repeat";
+main.style.backgroundImage = "url(./assets/img/main-img.jpg)";
+main.style.backgroundRepeat = "no-repeat";
+main.style.backgroundSize = "cover";
 
-
-
-const getData= async(event)=>{
+const getData = async (event) => {
     event.preventDefault();
-    if(!search.value){
+    if (!search.value) {
         alert("Please! Enter the City Name");
         return;
     }
 
-    const city=search.value;
-    const fetchData =await fetch(`https://api.weatherapi.com/v1/forecast.json?key=7cd2b59fbda6460a8ee61920232602&q=${city}&days=14&aqi=yes`);
+    const city = search.value;
+    try {
+        const fetchData = await fetch(`https://api.weatherapi.com/v1/forecast.json?key=5380f1caada04d03aee192116231102&q=${city}&days=14&aqi=yes`);
+        const orgData = await fetchData.json();
+        data = orgData;
+        console.log(data);
 
-    const orgData = await fetchData.json();
-    data = orgData;
-    console.log(data);
+        // Update DOM elements
+        countryName.innerHTML = data?.location?.country || 'N/A';
+        stateName.innerHTML = data?.location?.region || 'N/A';
+        cityName.innerHTML = data?.location?.name || 'N/A';
+        tempInC.innerHTML = data?.current?.temp_c || 'N/A';
+        tempInF.innerHTML = data?.current?.temp_f || 'N/A';
+        humidity.innerHTML = data?.current?.humidity || 'N/A';
+        windSpeed.innerHTML = data?.current?.wind_mph || 'N/A';
+        weatherStatus.innerHTML = data?.current?.condition?.text || 'N/A';
+        lastUpdate.innerHTML = data?.current?.last_updated || 'N/A';
+        feelsinC.innerHTML = data?.current?.feelslike_c || 'N/A';
+        feelsinF.innerHTML = data?.current?.feelslike_f || 'N/A';
+        visibility.innerHTML = data?.current?.vis_miles || 'N/A';
+        airIndex.innerHTML = data?.current?.air_quality["us-epa-index"] || 'N/A';
 
-    countryName.innerHTML = data.location.country;
-    stateName.innerHTML = data.location.region;
-    cityName.innerHTML = data.location.name;
-    tempInC.innerHTML=data.current.temp_c;
-    tempInF.innerHTML=data.current.temp_f;
-    humidity.innerHTML = data.current.humidity;
-    windSpeed.innerHTML = data.current.wind_mph;
-    logoImage.src = data.current.condition.icon;
-    weatherStatus.innerHTML = data.current.condition.text;
-    lastUpdate.innerHTML=data.current.last_updated;
-    feelsinC.innerHTML=data.current.feelslike_c;
-    feelsinF.innerHTML=data.current.feelslike_f;
-    visibility.innerHTML=data.current.vis_miles;
-    airIndex.innerHTML=data.current.air_quality["us-epa-index"];
-    
-    // Current date and time
-    const dateString =data.location.localtime;
-    const date = new Date(dateString);
-    const day = date.getDate();
-    const month = date.getMonth() + 1;
-    const year = date.getFullYear();
-    const hour=date.getHours();
-    const minutes=date.getMinutes();
-    const sec=date.getSeconds();
-    const dayOfWeek = date.getDay();
+        // Update current date and time
+        const updateDateTime = (dateString) => {
+            const date = new Date(dateString);
+            const options = { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' };
+            const newDate = new Intl.DateTimeFormat(undefined, options).format(date);
+            const hours = date.getHours();
+            const minutes = date.getMinutes().toString().padStart(2, "0");
+            const amPm = hours < 12 ? 'am' : 'pm';
+            const formattedTime = `${hours % 12 || 12}:${minutes}${amPm}`;
+            return { newDate, formattedTime };
+        };
 
-    const dateFormatter = new Intl.DateTimeFormat(undefined, { weekday: 'long' });
-     
-    const newWD = dateFormatter.format(date);
+        const { newDate, formattedTime } = updateDateTime(data?.location?.localtime);
+        currDate.innerHTML = newDate;
+        currTime.innerHTML = formattedTime;
 
-    const newDate = `${newWD},${day < 10 ? '0' + day : day}-${month < 10 ? '0' + month : month}-${year}`;
-
-    currDate.innerHTML=newDate;
-      
-    let amPm = hour < 12 ?'am':'pm';
-    let hours=hour%12;
-    hours=hours?hours:12;
-    const newTime=`${hours}:${minutes.toString().padStart(2, "0")}${amPm}`
-    currTime.innerHTML=newTime;
-
-    // forecastImage.src=data.forecast.forecastday[0].day.condition.icon;
-    // forecastStatus.innerHTML=data.forecast.forecastday[0].day.condition.text;
-    // foreinC.innerHTML=data.forecast.forecastday[0].day.avgtemp_c;
-    // foreinF.innerHTML=data.forecast.forecastday[0].day.avgtemp_f;
-
-
-    
-    for (let i = 0; i <= 9; i++) {
-        forecastStatus[i].innerHTML=data.forecast.forecastday[i].day.condition.text;
-        foreinC[i].innerText = data.forecast.forecastday[i].day.avgtemp_c;
-        foreinF[i].innerText =data.forecast.forecastday[i].day.avgtemp_f;
-        forecastImage[i].src = data.forecast.forecastday[i].day.condition.icon;
-
-        const forecastdate=data.forecast.forecastday[i].date;
-        const date = new Date(forecastdate);
-        const fday = date.getDate(); 
+        // Update forecast data
+        for (let i = 0; i < 10; i++) {
+            // Assuming you want the forecast for the current day, you need to get the correct day's data first
+            const forecastData = data?.forecast?.forecastday?.[0]?.hour[i];
+            
+            if (forecastData) {
+                forecastStatus[i].innerHTML = forecastData?.condition?.text || 'N/A';
+                foreinC[i].innerText = forecastData?.temp_c || 'N/A';
+                foreinF[i].innerText = forecastData?.temp_f || 'N/A';
         
-        const fdateFormatter = new Intl.DateTimeFormat(undefined, { weekday: 'long' });
-        const fnewWD = dateFormatter.format(date);
-        const fnewDay=`${fnewWD}    ${fday}`
-        forecastDay[i].innerHTML=fnewDay;
-      };
-    
-    
-
-    let timeOfday= "day";
-
-    const code= data.current.condition.code;
-    if(!data.current.is_day){
-        timeOfday="night";
-    }
-
-    if(code==1000){
-      main.style.backgroundImage=`url(./assets/${timeOfday}/sunny.jpg)`;
-      main.style.backgroundSize = "cover";
-      
-    }
-    else if(code==1003||
-            code==1006||
-            code==1009||
-            code==1030||
-            code==1069||
-            code==1087||
-            code==1135||
-            code==1275||
-            code==1276||
-            code==1279||
-            code==1282
-            ){
-                main.style.backgroundImage=`url(./assets/${timeOfday}/cloudy.jpg)`
-                main.style.backgroundSize = "cover";
+                const forecastDate = new Date(forecastData.time);
+                const formattedForecastDate = new Intl.DateTimeFormat(undefined, { 
+                    weekday: 'long', 
+                    hour: 'numeric', 
+                    minute: 'numeric' 
+                }).format(forecastDate);
+                forecastHour[i].innerHTML = formattedForecastDate;
+            } else {
+                // Clear the card if there's no forecast data
+                forecastStatus[i].innerHTML = 'N/A';
+                foreinC[i].innerText = 'N/A';
+                foreinF[i].innerText = 'N/A';
+                forecastHour[i].innerHTML = 'N/A';
             }
-     else if(code==1063||
-             code==1069||
-             code==1072||
-             code==1150||
-             code==1153||
-             code==1180||
-             code==1183||
-             code==1186||
-             code==1189||
-             code==1192||
-             code==1195||
-             code==1204||
-             code==1207||
-             code==1240||
-             code==1243||
-             code==1246||
-             code==1249||
-             code==1252)
-             {
-              main.style.backgroundImage=`url(./assets/${timeOfday}/rainy.jpg)`
-     }       
-     else{
-         main.style.backgroundImage=`url(./assets/${timeOfday}/snowy.jpg)`
-     }
+        }
+
+        // Update background image based on weather condition
+        const updateBackgroundImage = (conditionCode, isDay) => {
+            const timeOfDay = isDay ? 'day' : 'night';
+            let weatherType;
+
+            if (conditionCode === 1000) {
+                weatherType = 'sunny';
+            } else if ([1003, 1006, 1009, 1030, 1069, 1087, 1135, 1275, 1276, 1279, 1282].includes(conditionCode)) {
+                weatherType = 'cloudy';
+            } else if ([1063, 1069, 1072, 1150, 1153, 1180, 1183, 1186, 1189, 1192, 1195, 1204, 1207, 1240, 1243, 1246, 1249, 1252].includes(conditionCode)) {
+                weatherType = 'rainy';
+            } else {
+                weatherType = 'snowy';
+            }
+
+            main.style.backgroundImage = `url(./assets/${timeOfDay}/${weatherType}.jpg)`;
+            main.style.backgroundSize = "cover";
+        };
+
+        const currentConditionCode = data?.current?.condition?.code;
+        const isDay = data?.current?.is_day;
+        updateBackgroundImage(currentConditionCode, isDay);
+    } catch (error) {
+        console.error("Error fetching weather data:", error);
+        alert("Failed to fetch weather data. Please try again.");
     }
-
-
-
-
-
+};
